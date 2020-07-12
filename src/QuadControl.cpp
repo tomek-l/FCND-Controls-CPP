@@ -12,6 +12,8 @@
 #include <systemlib/param/param.h>
 #endif
 
+#include <iostream>
+
 void QuadControl::Init()
 {
   BaseController::Init();
@@ -70,10 +72,36 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+  float c_bar = collThrustCmd;
+  float l = L / (sqrt(2.0));
+  float p_bar = momentCmd.x / l; // desired rotation rate around x axis  
+  float q_bar = momentCmd.y / l; 
+  float r_bar = -momentCmd.z / kappa;
+
+  cmd.desiredThrustsN[0] = (c_bar + p_bar + q_bar + r_bar) / 4.0;  // front left
+  cmd.desiredThrustsN[1] = (c_bar - p_bar + q_bar - r_bar) / 4.0;  // front right
+  cmd.desiredThrustsN[3] = (c_bar - p_bar - q_bar + r_bar) / 4.0;  // rear left
+  cmd.desiredThrustsN[2] = (c_bar + p_bar - q_bar - r_bar) / 4.0;  // rear right
+
+
+
+  // cmd.desiredThrustsN[3] = (c_bar + p_bar - q_bar - r_bar) / 4.0;  // rear right
+  // cmd.desiredThrustsN[2] = (r_bar - p_bar)/2.0 + cmd.desiredThrustsN[3];  // rear left
+  // cmd.desiredThrustsN[1] = (c_bar - p_bar)/2.0 - cmd.desiredThrustsN[2];  // front right
+  // cmd.desiredThrustsN[0] = c_bar - cmd.desiredThrustsN[1] - cmd.desiredThrustsN[2] - cmd.desiredThrustsN[3];  // front left
+
+
+  // cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
+  // cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
+  // cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
+  // cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+  
+  printf("%f %f %f %f \n",
+  cmd.desiredThrustsN[0],
+  cmd.desiredThrustsN[1],
+  cmd.desiredThrustsN[2],
+  cmd.desiredThrustsN[3]);
+
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -93,14 +121,19 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
   //  - you can use V3Fs just like scalars: V3F a(1,1,1), b(2,3,4), c; c=a-b;
   //  - you'll need parameters for moments of inertia Ixx, Iyy, Izz
   //  - you'll also need the gain parameter kpPQR (it's a V3F)
-
-  V3F momentCmd;
-
+  
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  
+  // V3F I = V3F(Ixx, Iyy, Izz); // Moments of inertia as vector
+  // V3F pqr_err = pqrCmd - pqr;
+	// V3F momentCmd = I * kpPQR * pqr_err;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
+
+	V3F momentCmd;
+	auto pqr_err = pqrCmd - pqr;
+	auto I = V3F(Ixx, Iyy, Izz);
+	momentCmd = I * kpPQR * pqr_err;
 
   return momentCmd;
 }
@@ -234,6 +267,7 @@ VehicleCommand QuadControl::RunControl(float dt, float simTime)
   curTrajPoint = GetNextTrajectoryPoint(simTime);
 
   float collThrustCmd = AltitudeControl(curTrajPoint.position.z, curTrajPoint.velocity.z, estPos.z, estVel.z, estAtt, curTrajPoint.accel.z, dt);
+  collThrustCmd = mass * 0.9 * 9.81;
 
   // reserve some thrust margin for angle control
   float thrustMargin = .1f*(maxMotorThrust - minMotorThrust);
@@ -245,6 +279,7 @@ VehicleCommand QuadControl::RunControl(float dt, float simTime)
   desOmega.z = YawControl(curTrajPoint.attitude.Yaw(), estAtt.Yaw());
 
   V3F desMoment = BodyRateControl(desOmega, estOmega);
+  std::cout << desMoment.x << std::endl;
 
   return GenerateMotorCommands(collThrustCmd, desMoment);
 }
