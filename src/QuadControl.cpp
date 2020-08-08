@@ -227,8 +227,10 @@ float QuadControl::AltitudeControl(
 
   float e_pos_Z = posZCmd - posZ;
   float e_vel_Z = velZCmd - velZ;
+  integratedAltitudeError += dt * e_pos_Z;
 
   float u1 = kpPosZ * e_pos_Z + kpVelZ * e_vel_Z + accelZCmd; // acceleration
+  u1 += KiPosZ * integratedAltitudeError; // integral part of altitude control
 
   float c = mass * (u1 - 9.81)/R(2,2);  // collective thrust
 
