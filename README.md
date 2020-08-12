@@ -1,8 +1,11 @@
 # Scenario 1: Wrong model (mass) correction
 
 Before:
+
 ![](docs/scenario1_bad.gif)
+
 After:
+
 ![](docs/scenario1_good.gif)
 
 
@@ -12,8 +15,11 @@ The vehicle recovers from roll axis rotation
 
 
 Before:
+
 ![](docs/scenario2_bad.gif)
+
 After:
+
 ![](docs/scenario2_good.gif)
 
 
@@ -22,8 +28,11 @@ After:
 The vehicle corrects the initial yaw error, and converges to it's target X position.
 
 Before:
+
 ![](docs/scenario3_bad.gif)
+
 After:
+
 ![](docs/scenario3_good.gif)
 
 
@@ -37,8 +46,11 @@ The two vehicles:
 converge to their set X positions.
 
 Before:
+
 ![](docs/scenario4_bad.gif)
+
 After:
+
 ![](docs/scenario4_good.gif)
 
 
@@ -47,6 +59,9 @@ After:
 The vehicle is able to track "figure 8" trajectory within the set error margin.
 
 Before:
+
 ![](docs/scenario5_bad.gif)
+
 After:
+
 ![](docs/scenario5_good.gif)
